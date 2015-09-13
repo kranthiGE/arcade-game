@@ -10,7 +10,6 @@ var spriteChoosen = 0;
 var eRowStarts = [61, 145, 228, 310];     // Pixel y coord enemy starting points for each row of water
 var eOffStart = [-101, -202, -303, -404]; // Off screen coords for enemy starting positions
 var speed = 200;
-var isCollided = false;
 
 // Enemies our player must avoid
 var Enemy = function() {
@@ -95,6 +94,7 @@ var Player = function(){
     this.x = 200;
     this.y = 410;
     this.lives = 3;//maximum number of player lives for a game
+    this.crossings = 0;
 
     playercharacters = [
         'images/char-boy.png',
@@ -116,6 +116,8 @@ Player.prototype.render = function(){
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
     ctx.textAlign = 'right';
     ctx.fillText('Player lives:' + this.lives, 500, 580);
+    ctx.textAlign = 'right';
+    ctx.fillText('Crossings:' + this.crossings, 300, 580);
 
     //TODO: check for collisions after rendering the player
     checkCollisions(player);
@@ -156,6 +158,7 @@ Player.prototype.handleInput = function(inputKey){
             this.reset();
             break;
     }
+
     if(this.targetY <= -10){
         this.targetY = 0;
     }
@@ -163,9 +166,13 @@ Player.prototype.handleInput = function(inputKey){
     // constraints on movement
     if (!(this.targetX > 500 || this.targetX < -2 || this.targetY < 0 || this.targetY > 450)) {
         this.x = this.targetX;
-        this.y = this.targetY < 0 ? 0 : this.targetY;
+        this.y = this.targetY;
     }
 
+    if(this.targetY === 0){
+        this.crossings = this.crossings + 1;
+        this.reset();
+    }
 };
 
 // Now instantiate your objects.
@@ -222,7 +229,6 @@ function checkCollisions(player){
         diffDist = Math.sqrt(Math.pow(eX[i] - pX, 2) + Math.pow(eY[i] - pY, 2));
         // Check if the distance difference is low as half-of enemy width, then throw an error and reduce lives
         if(diffDist < 50){
-            isCollided = true;
             // For every collision, reduce the number of lives by 1 and reset the game2 screen
             player.lives -= 1;
             player.reset();
@@ -230,9 +236,11 @@ function checkCollisions(player){
     }
 
     // If lives == 0, then reset the game with gameover alert and show 1st screen
+    // reset the crossings and lives variable to default
     if(player.lives <= 0){
         player.reset();
         player.lives = 3;
+        player.crossings = 0;
         gameScreen = 2;
     }
 }
